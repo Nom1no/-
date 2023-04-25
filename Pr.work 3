@@ -1,0 +1,63 @@
+const fs = require('fs');
+const crypto = require('crypto');
+const readline = require('readline');
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+function hashPassword(password) {
+  const hash = crypto.createHash('sha256');
+  hash.update(password);
+  return hash.digest('hex');
+}
+
+function savePassword(password) {
+  const hashedPassword = hashPassword(password);
+  fs.writeFileSync('passwords.txt', hashedPassword + '\n', { flag: 'a' });
+  console.log('Password saved successfully.');
+}
+
+function checkPassword(password) {
+  const hashedPassword = hashPassword(password);
+  const savedPasswords = fs.readFileSync('passwords.txt', 'utf-8');
+  const savedPasswordsArray = savedPasswords.split('\n');
+  for (let savedPassword of savedPasswordsArray) {
+    if (savedPassword === hashedPassword) {
+      console.log('Password is correct.');
+      return;
+    }
+  }
+  console.log('Password is incorrect.');
+}
+
+function addPassword() {
+  rl.question('Enter new password: ', (password) => {
+    savePassword(password);
+    rl.close();
+  });
+}
+
+function checkPasswordPrompt() {
+  rl.question('Enter password to check: ', (password) => {
+    checkPassword(password);
+    rl.close();
+  });
+}
+
+function main() {
+  const command = process.argv[2];
+  switch (command) {
+    case 'add':
+      addPassword();
+      break;
+    case 'check':
+      checkPasswordPrompt();
+      break;
+    default:
+      console.log('Invalid command. Usage: node password.js [add|check]');
+  }
+}
+
+main();
