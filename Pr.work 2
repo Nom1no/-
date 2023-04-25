@@ -1,0 +1,82 @@
+const fs = require('fs');
+const csv = require('csv-parser');
+
+const FILE_PATH = 'shopping_list.csv';
+
+// Функція для додавання продуктів у список (csv файл)
+function addItem(item) {
+  fs.appendFileSync(FILE_PATH, `${item.name},${item.quantity}\n`);
+  console.log(`Додано ${item.quantity} ${item.name} до списку покупок.`);
+}
+
+// Функція для отримання даних про продукт за його унікальним ідентифікатором
+function getItemById(itemId) {
+  let foundItem = null;
+  fs.createReadStream(FILE_PATH)
+    .pipe(csv())
+    .on('data', (data) => {
+      if (data.id === itemId) {
+        foundItem = data;
+      }
+    })
+    .on('end', () => {
+      if (foundItem) {
+        console.log(`Знайдено: ${foundItem.quantity} ${foundItem.name}`);
+      } else {
+        console.log('Продукт не знайдено');
+      }
+    });
+}
+
+// Функція для видалення продукту зі списку (csv файлу) за його унікальним ідентифікатором
+function removeItemById(itemId) {
+  const tempFile = `${FILE_PATH}.tmp`;
+  let foundItem = false;
+  fs.createReadStream(FILE_PATH)
+    .pipe(csv())
+    .on('data', (data) => {
+      if (data.id !== itemId) {
+        fs.appendFileSync(tempFile, `${data.name},${data.quantity}\n`);
+      } else {
+        foundItem = true;
+      }
+    })
+    .on('end', () => {
+      fs.unlinkSync(FILE_PATH);
+      fs.renameSync(tempFile, FILE_PATH);
+      if (foundItem) {
+        console.log(`Продукт з id ${itemId} був видалений зі списку`);
+      } else {
+        console.log('Продукт не знайдено');
+      }
+    });
+}
+
+// Функція для зміни продукту за його унікальним Ідентифікатором
+function updateItemById(itemId, newItem) {
+  const tempFile = `${FILE_PATH}.tmp`;
+  let foundItem = false;
+  fs.createReadStream(FILE_PATH)
+    .pipe(csv())
+    .on('data', (data) => {
+      if (data.id !== itemId) {
+        fs.appendFileSync(tempFile, `${data.name},${data.quantity}\n`);
+      } else {
+        fs.appendFileSync(tempFile, `${newItem.name},${newItem.quantity}\n`);
+        foundItem = true;
+      }
+    })
+    .on('end', () => {
+      fs.unlinkSync(FILE_PATH);
+      fs.renameSync(tempFile, FILE_PATH);
+      if (foundItem) {
+        console.log(`Продукт з id ${itemId} був оновлений`);
+      } else {
+        console.log('Продукт не знайдено');
+      }
+    });
+}
+
+// Приклади використання функцій
+addItem({ id: 1, name: 'Молоко', quantity: 1 });
+addItem({ id: 2, name: 'Цукор', quantity: 1 });
