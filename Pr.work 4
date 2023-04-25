@@ -1,0 +1,81 @@
+//decrypt
+
+const { promisify } = require("util");
+const fs = require("fs");
+const pidCrypt = require("pidcrypt");
+require("pidcrypt/aes_cbc");
+
+const aes = new pidCrypt.AES.CBC();
+
+const readFileAsync = promisify(fs.readFile);
+const writeFileAsync = promisify(fs.writeFile);
+const unlinkAsync = promisify(fs.unlink);
+
+const decryptFile = async (filePath) => {
+  try {
+    const data = await readFileAsync(filePath, "utf8");
+    const decryptedText = aes.decryptText(data);
+    const newFilePath = filePath.replace(/\.enc$/, ".txt");
+    await writeFileAsync(filePath, decryptedText);
+    await writeFileAsync(newFilePath, decryptedText);
+    await unlinkAsync(filePath);
+    console.log(`Текст у файлі "${filePath}" було успішно дешифровано та збережено у файлі "${newFilePath}" і видалено.`);
+  } catch (err) {
+    console.error(`Сталась помилка: ${err}`);
+  }
+};
+
+decryptFile("text.txt");
+decryptFile("text.enc");
+
+
+//encrypt
+
+const fs = require("fs");
+const pidCrypt = require("pidcrypt");
+require("pidcrypt/aes_cbc");
+
+const aes = new pidCrypt.AES.CBC();
+const key = "abracadabra"; 
+
+
+function encryptFile(filePath) {
+  fs.readFile(filePath, "utf8", (err, data) => {
+    if (err) return console.error(err);
+
+    const encryptedText = aes.encryptText(data, key); 
+
+    const newFilePath = filePath.replace(/\.txt$/, ".enc");
+
+    fs.writeFile(newFilePath, encryptedText, (err) => {
+      if (err) return console.error(err);
+
+      console.log(`Текст у файлі "${filePath}" було успішно зашифровано та збережено у файлі "${newFilePath}".`);
+
+      
+    });
+  });
+}
+
+
+function decryptFile(filePath) {
+  fs.readFile(filePath, "utf8", (err, data) => {
+    if (err) return console.error(err);
+
+    const decryptedText = aes.decryptText(data, key); 
+
+    const newFilePath = filePath.replace(/\.enc$/, ".txt");
+
+    fs.writeFile(newFilePath, decryptedText, (err) => {
+      if (err) return console.error(err);
+
+      console.log(`Текст у файлі "${filePath}" було успішно дешифровано та збережено у файлі "${newFilePath}".`);
+
+     
+      
+    });
+  });
+}
+
+encryptFile("text.txt");
+decryptFile("text.enc");
