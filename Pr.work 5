@@ -1,0 +1,33 @@
+const http = require('http');
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/') {
+    res.write('the reason why i`m still alive...!');
+    res.end();
+  } else if (req.url === '/about') {
+    const html = `
+      <html>
+        <head>
+          <title>Про мене</title>
+        </head>
+        <body>
+          <h1>Інформація про студента</h1>
+          <p>Ім'я: Muzhenko</p>
+          <p>Прізвище: Pavlo</p>
+          <p>Група: ІПЗ-22-2</p>
+          <p>Курс: 1</p>
+        </body>
+      </html>
+    `;
+
+    res.write(html);
+    res.end();
+  } else {
+    res.write('404 Not Found');
+    res.end();
+  }
+});
+
+server.listen(3000, () => {
+  console.log('Server is listening on port 3000');
+});
