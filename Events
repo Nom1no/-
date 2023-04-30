@@ -1,0 +1,22 @@
+const EventEmitter = require('events');
+const fs = require('fs');
+
+class TemperatureEmitter extends EventEmitter {}
+
+const tempEmitter = new TemperatureEmitter();
+
+function saveTemperatureToFile(date, temperature) {
+  const data = { date, temperature };
+  const jsonData = JSON.stringify(data);
+
+  fs.writeFile('temperature.json', jsonData, (err) => {
+    if (err) throw err;
+    console.log('Temperature data saved to file!');
+  });
+}
+
+tempEmitter.on('getTemperatureData', saveTemperatureToFile);
+
+const date = '2023-04-20';
+const temperature = 25;
+tempEmitter.emit('getTemperatureData', date, temperature);
