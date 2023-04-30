@@ -1,0 +1,37 @@
+const request = require('request');
+const zlib = require('zlib');
+const readline = require('readline');
+const mongoose = require('mongoose');
+
+mongoose.connect('mongodb://localhost:27017/movies', { useNewUrlParser: true, useUnifiedTopology: true });
+
+const Movie = mongoose.model('Movie', new mongoose.Schema({
+    title: String,
+    year: Number,
+    genres: [String],
+    cast: [String]
+}));
+
+request.get('https://popwatch-staging.s3.us-east-2.amazonaws.com/movies_1.gz')
+    .pipe(zlib.createGunzip())
+    .pipe(readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+        terminal: false
+    }))
+    .on('line', async (line) => {
+        const movieData = JSON.parse(line);
+
+        const movie = new Movie({
+            title: movieData.title,
+            year: movieData.year,
+            genres: movieData.genres,
+            cast: movieData.cast
+        });
+        await movie.save();
+    })
+    .on('close', () => {
+        console.log('All movies added to database!');
+        mongoose.disconnect();
+    });
+
