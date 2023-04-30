@@ -1,0 +1,17 @@
+const { Transform } = require('stream');
+const fs = require('fs');
+
+const capitalizeStream = new Transform({
+  transform(chunk, encoding, callback) {
+    const capitalizedChunk = chunk.toString().split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+    callback(null, capitalizedChunk);
+  }
+});
+
+const inputStream = fs.createReadStream('input.txt');
+const outputStream = fs.createWriteStream('output.txt');
+
+inputStream.pipe(capitalizeStream).pipe(outputStream);
+
